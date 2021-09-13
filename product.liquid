@@ -1,0 +1,186 @@
+<section data-section-id="{{ section.id }}" data-section-type="product" class="section-padding">
+  <div class="container ">
+  
+        <div class="row">
+            <div class="col-md-6">
+              {%- assign current_variant = product.selected_or_first_available_variant -%}
+              {%- assign featured_image = current_variant.featured_image | default: product.featured_image -%}
+                    
+                <div class="product-slider">
+                  {% if product.images.size > 0 %}
+                  {% assign index = 0 %}
+                      {% for image in product.images %}
+                      {% assign index = index | plus: 1 %}
+                        <div data-index="{{ index }}" id="{{ image.id }}">
+                          <a href="{{ image.src | img_url: '480x480' }}" data-thumbnail-id="{{ image.id }}" data-product-single-thumbnail{% if featured_image == image %} aria-current="true"{% endif %}>
+                            <img class="img-fluid" src="{{ image.src | img_url: '800x600', crop:'center' }}" alt="{{ image.alt | escape }}">
+                          </a>
+                        </div>
+                      {% endfor %}
+                  {% endif %}
+                </div>
+
+                <div class="product-slider-nav mt-4">
+                    {% if product.images.size > 1 %}
+                        {% for image in product.images %}
+                            <img class="img-fluid px-3" width="50" src="{{ image.src | img_url: '200x150', crop:'center' }}" alt="{{ image.alt | escape }}">
+                        {% endfor %}
+                    {% endif %} 
+                </div>
+
+            </div> <!-- / col -->
+
+            <div class="col-md-6">
+                
+                {% include 'product-price' %}
+                {% include 'product-form' %}
+                {% if section.settings.product_sku != blank %}
+                  <div id="product_sku" {% if section.settings.product_sku == blank %} style="display: none;" {% endif %}>
+                      <span><strong>SKU: </strong> {{ product.selected_or_first_available_variant.sku }}</span>
+                  </div>  
+                {% endif %}   
+
+               {% if section.settings.product_categories != blank %}
+               <div class="product_collections">
+                  <ul>
+                   <li><span><strong>CATEGORIES:</strong></span> </li>
+                   {% for collection in product.collections %}
+                   {% if collection.title == 'Home page' %}
+                   {% else %}
+                   <li><a href="{{ collection.url }}">{{ collection.title }}</a></li>
+                   {% endif %}
+                   {% endfor %}
+                  </ul>
+                </div>  
+                {% endif %} 
+
+                <div class="rte product_description">
+                  {% if section.settings.short_description %}
+                    {{ product.description | truncate:250 }}
+                  {% else %}
+                  {{ product.description }}
+                  {% endif %}
+                </div>
+              
+                {% if section.settings.show_share_buttons %}
+                  {% include 'social-sharing', share_title: product.title, share_permalink: product.url, share_image: product %}
+                {% endif %}
+
+                <div id="shopify-product-reviews" data-id="{{product.id}}">{{ product.metafields.spr.reviews }}</div>
+
+            </div> <!-- / col -->
+        </div> <!-- / row -->
+
+      {% if section.settings.product_description %}
+        
+      <div class="row">
+        <div class="col-md-12">
+          <div class="product__meta__tabs">
+            <ul class="nav nav-tabs" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" href="#product_desc" role="tab" data-toggle="tab">Description</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#specifications" role="tab" data-toggle="tab">Specifications</a>
+              </li>
+              {% if section.settings.product_review %}
+                
+              <li class="nav-item">
+                <a class="nav-link" href="#product_review" role="tab" data-toggle="tab">Review</a>
+              </li>
+              {% endif %}
+            </ul>
+            
+            <!-- Tab panes -->
+            <div class="tab-content">
+              <div role="tabpanel" class="tab-pane active" id="product_desc">
+                {{ product.description }}
+              </div>
+              <div role="tabpanel" class="tab-pane fade" id="specifications">
+                {% unless product.has_only_default_variant %}
+                {% for product_option in product.options_with_values %}
+                <div class="product_specifications">
+                  <h4 class="h4">{{ product_option.name }}</h1>
+                  <ul>
+                    {% for value in product_option.values %}
+                    <li >{{ value }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endfor %} 
+                {% endunless %} 
+              </div>
+              {% if section.settings.product_review %}
+              <div role="tabpanel" class="tab-pane fade" id="product_review">
+                <p>Add product review app code here</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    
+</section>
+<style>
+
+</style>
+{% schema %}
+  {
+    "name": "Product pages",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_share_buttons",
+        "label": "Show social sharing buttons",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "short_description",
+        "label": "Show Product Short Description"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_description",
+        "label": "Show Product Specifications",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_sku",
+        "label": "Show Product SKU",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_categories",
+        "label": "Show Product Collections",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_review",
+        "label": "Show Product reviews",
+        "info": "Add product review app code here"
+      },
+      {
+        "type": "select",
+        "id": "swatches_options",
+        "label": "Swatches Options",
+        "default": "dropdown",
+        "options": [
+          {
+            "value": "dropdown",
+            "label": "Dropdown"
+          },
+          {
+            "value": "swatches",
+            "label": "Swatches"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

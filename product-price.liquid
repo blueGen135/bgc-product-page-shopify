@@ -1,0 +1,42 @@
+<div class="product-price" id="product_price">
+
+  {% if product.compare_at_price > product.price %}
+
+          {% if product.price_varies %}
+            {%- assign sale_price = product.price | money -%}
+            <span class="money regular_price" id="regular_price">  {{ sale_price }}</span>
+            {% else %}
+            <!-- {{ 'products.product.on_sale' | t }} -->
+            <span class="money regular_price" id="regular_price">{{ product.price | money }}</span>
+            {% endif %}
+            
+        {% else %}
+
+          {% if product.price_varies %}
+            {%- assign price = product.price | money -%}
+            <span class="money regular_price" id="regular_price">{{ price }}</span>
+          {% else %}
+          <span class="money regular_price" id="regular_price">{{ product.price | money }}</span>
+          {% endif %}
+
+        {% endif %}
+
+        {% if product.compare_at_price > product.price %}
+          <!-- <span class="visually-hidden">{{ 'products.product.regular_price' | t }}</span> -->
+          <span class="money compare_price" id="compare_price">{{ product.compare_at_price | money }}</span>
+        {% endif %}
+
+        {% unless product.available %}
+          <span class="sold_out" id="sold_out">{{ 'products.product.sold_out' | t }}</span>
+        {% endunless %}
+
+        {% if product.available == true %}
+          
+        <span class="save_amount" id="save_amount">{% if product.compare_at_price > product.price %}
+          {% assign saving = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price | round %}
+          {% assign percentage = saving | at_least: percentage %}
+          Save up to {{ percentage }}%
+          {% endif %}</span>
+        {% endif %}
+
+</div>
