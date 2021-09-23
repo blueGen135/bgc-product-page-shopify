@@ -1,4 +1,61 @@
 $(window).on("load", function () {
+  function isNumber(evt) {
+    evt = evt ? evt : window.event;
+    var charCode = evt.which ? evt.which : evt.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
+
+  function getVariantFromOptions() {
+    let variantArr = [];
+    jQuery(".product-category .mgfox").map(function (i, el) {
+      var type = jQuery(this).attr("type");
+      if (type === "radio" || type === "checkbox") {
+        if ($(el).is(":checked")) {
+          variantArr.push({
+            value: $(el).val(),
+            index: $(el).attr("data-index"),
+          });
+        }
+      } else {
+        variant = { value: $(el).val(), index: $(el).data("index") };
+        variantArr.push(variant);
+      }
+    });
+    return variantArr;
+  }
+
+  function getVariantFromSwatches() {
+    let variantArr = [];
+    $(".product-category input[type=radio]").map(function (i, el) {
+      if ($(el).is(":checked")) {
+        variantArr.push({
+          value: $(el).val(),
+          index: $(el).attr("data-index"),
+        });
+      }
+    });
+    return variantArr;
+  }
+
+  function updateHistoryState(variant) {
+    if (!history.replaceState || !variant) {
+      return;
+    }
+
+    var newurl =
+      window.location.protocol +
+      "//" +
+      window.location.host +
+      window.location.pathname +
+      "?variant=" +
+      variant.id;
+
+    window.history.replaceState({ path: newurl }, "", newurl);
+  }
+
   /**Money Format */
   theme.Currency = (function () {
     var moneyFormat = "${{amount}}"; // eslint-disable-line camelcase
@@ -60,80 +117,12 @@ $(window).on("load", function () {
     };
   })();
 
-  /**Navigation */
-  (function ($) {
-    var defaults = {
-      sm: 540,
-      md: 720,
-      lg: 960,
-      xl: 1140,
-      navbar_expand: "lg",
-      animation: true,
-      animateIn: "fadeIn",
-    };
-    $.fn.bootnavbar = function (options) {
-      var screen_width = $(document).width();
-      settings = $.extend(defaults, options);
-      if (screen_width >= settings.lg) {
-        $(this)
-          .find(".dropdown")
-          .hover(
-            function () {
-              $(this).addClass("show");
-              $(this).find(".dropdown-menu").first().addClass("show");
-              if (settings.animation) {
-                $(this)
-                  .find(".dropdown-menu")
-                  .first()
-                  .addClass("animated " + settings.animateIn);
-              }
-            },
-            function () {
-              $(this).removeClass("show");
-              $(this).find(".dropdown-menu").first().removeClass("show");
-            }
-          );
-      }
-
-      $(".dropdown-menu a.dropdown-toggle").on("click", function (e) {
-        if (!$(this).next().hasClass("show")) {
-          $(this)
-            .parents(".dropdown-menu")
-            .first()
-            .find(".show")
-            .removeClass("show");
-        }
-        var $subMenu = $(this).next(".dropdown-menu");
-        $subMenu.toggleClass("show");
-
-        $(this)
-          .parents("li.nav-item.dropdown.show")
-          .on("hidden.bs.dropdown", function (e) {
-            $(".dropdown-submenu .show").removeClass("show");
-          });
-
-        return false;
-      });
-    };
-  })(jQuery);
-
-  $("#main_navbar").bootnavbar();
-  $(window).on("scroll", function () {
-    var scroll = $(window).scrollTop();
-    if (scroll < 300) {
-      $(".header-sticky").removeClass("sticky-bar");
-      $("#back-top").fadeOut(500);
-    } else {
-      $(".header-sticky").addClass("sticky-bar");
-      $("#back-top").fadeIn(500);
-    }
-  });
-
   $(".add").on("click", function () {
     $(this)
       .prev()
       .val(+$(this).prev().val() + 1);
   });
+
   $(".sub").on("click", function () {
     if ($(this).next().val() > 1) {
       if ($(this).next().val() > 1)
@@ -142,6 +131,7 @@ $(window).on("load", function () {
           .val(+$(this).next().val() - 1);
     }
   });
+
   function update_varient_id(variant) {
     $("#variant_id").val(variant);
   }
@@ -185,13 +175,11 @@ $(window).on("load", function () {
         '<span class="money compare_price" id="compare_price"> ' +
         theme.Currency.formatMoney(compare_price, theme.moneyFormat) +
         "</span>";
-      var saved_price = Math.round(
-        ((compare_price - regular_price) / compare_price) * 100
-      );
+      var saved_price = Math.round(compare_price - regular_price);
       var saved_price_output =
         '<span class="save_amount" id="save_amount"> Save up to ' +
         theme.Currency.formatMoney(saved_price, theme.moneyFormat) +
-        "%</span>";
+        "</span>";
       output = regular_price_output + compare_price_output + saved_price_output;
     } else {
       var compare_price_output = "";
@@ -208,7 +196,8 @@ $(window).on("load", function () {
     var masterSelect = jQuery(".product-form__variants");
     masterSelect.val(variant.id);
   }
-  jQuery(".product-category select").on("change", function () {
+
+  jQuery(".product-category .mgfox").on("change", function () {
     var selectedValues = getVariantFromOptions();
     var variants = window.product.variants;
     var found = false;
@@ -225,6 +214,7 @@ $(window).on("load", function () {
         found = variant;
       }
     });
+    console.log(selectedValues);
     update_add_to_cart_text(found);
     get_sku(found);
     update_varient_id(found.id);
@@ -233,28 +223,55 @@ $(window).on("load", function () {
     updateMasterVariant(found);
     updateHistoryState(found);
   });
-  jQuery("input[type=radio]").on("change", function () {
-    var selectedValues = getVariantFromSwatches();
-    var variants = window.product.variants;
-    var found = false;
-    variants.forEach(function (variant) {
-      var satisfied = true;
-      var options = variant.options;
-      selectedValues.forEach(function (option) {
-        if (satisfied) {
-          satisfied = option.value === variant[option.index];
-        }
-      });
 
-      if (satisfied) {
-        found = variant;
-      }
-    });
-    update_add_to_cart_text(found);
-    get_sku(found);
-    update_varient_id(found.id);
-    update_slider_image(found.featured_image.id);
-    update_product_price(found);
-    updateMasterVariant(found);
+  // jQuery("input[type=radio]").on("change", function () {
+  //   var selectedValues = getVariantFromSwatches();
+  //   var variants = window.product.variants;
+  //   var found = false;
+  //   variants.forEach(function (variant) {
+  //     var satisfied = true;
+  //     var options = variant.options;
+  //     selectedValues.forEach(function (option) {
+  //       if (satisfied) {
+  //         satisfied = option.value === variant[option.index];
+  //       }
+  //     });
+
+  //     if (satisfied) {
+  //       found = variant;
+  //     }
+  //   });
+  //   console.log(found.id);
+  //   update_add_to_cart_text(found);
+  //   get_sku(found);
+  //   update_varient_id(found.id);
+  //   // update_slider_image(found.featured_image.id);
+  //   update_product_price(found);
+  //   updateMasterVariant(found);
+  // });
+
+  $(".product-slider").slick({
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    fade: true,
+    cssEase: "linear",
+    asNavFor: ".product-slider-nav",
+  });
+  $(".product-slider-nav").slick({
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    asNavFor: ".product-slider",
+    dots: false,
+    centerMode: true,
+    focusOnSelect: true,
+    prevArrow:
+      "<button type='button' class='slick-prev p-slider-btn' id='pro_previous'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='#ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-chevron-left'><polyline points='15 18 9 12 15 6'/></svg></button>",
+    nextArrow:
+      "<button type='button' class='slick-next p-slider-btn' id='pro_next'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='#ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-chevron-right'><polyline points='9 18 15 12 9 6'/></svg></button>",
+  });
+  $(".metal_info").on("hover", function () {
+    let vl = $(this).attr("alt");
+    $("#metal_name").text(vl);
   });
 });
