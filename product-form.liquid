@@ -1,34 +1,29 @@
 <form action="/cart/add" method="post" enctype="multipart/form-data" id="add-to-cart-{{ product.handle }}">
 {% unless product.has_only_default_variant %}
 {% for product_option in product.options_with_values %}
-  {% if section.settings.swatches_options == 'dropdown' %}
-        <div class="product-category js-single-product-option-{{ option-name }} single-product-option-{{ option-name }}"
-        id="SingleOptionSelector-{{ forloop.index0 }}">
-          <span class="option_label">{{ product_option.name }}</span>
-          <select class="form-control variant-option"  data-index="option{{ forloop.index }}">
-            {% for value in product_option.values %}
-            <option value="{{ value | escape }}" {% if product_option.selected.value == value %} selected {% endif %}>{{ value }}</option>
-            {% endfor %}
-          </select>
-        </div>
-  {% endif %}
+ <div class="product-category js-single-product-option-{{ option-name }} single-product-option-{{ option-name }}"
+          id="SingleOptionSelector-{{ forloop.index0 }}">
 
-  {% if section.settings.swatches_options == 'swatches' %}
- 
-      <div class="swatches_container">
-        <div class="swatches_label">{{ product_option.name }}</div>
-          {% assign index = forloop.index %}
-        {% for value in product_option.values %}
-            <label>
-              <input type="radio" class="" value="{{ value | escape }}" data-index="option{{ index }}" name="{{ product_option.name }}" {% if forloop.index == 1 %} checked {% endif %}/>
-              <div class="front-end box" {% if product_option.name == 'Color' %} style="background:{{ value }}" {% else %} style="background:#303030" {% endif%}>
-                {% if product_option.name == 'Color' %} {% else %} <span>{{ value }}</span> {% endif %}
-              </div>
-            </label>
-        {% endfor %}
-      </div>
-   
-  {% endif %}
+          {% if product_option.name == 'Color' %}
+              <span class="option_label">{{ product_option.name }} <span id="metal_name"></span></span>
+              {% assign index = forloop.index %}
+          {% for value in product_option.values %}
+         
+         
+              <label>
+                <input type="radio" class="mgfox"  value="{{ value | escape }}" data-index="option{{ index }}" name="{{ product_option.name }}" {% if forloop.index == 1 %} checked {% endif %}/>
+                <div class="front-end box metal_info" alt="{{ value }}">{{ value }}</div>
+              </label>
+          {% endfor %}
+          {% else %}
+          <span class="option_label">{{ product_option.name }}</span>
+              <select class="form-control mgfox variant-option"  data-index="option{{ forloop.index }}">
+                {% for value in product_option.values %}
+                <option value="{{ value | escape }}" {% if product_option.selected.value == value %} selected {% endif %}>{{ value }}</option>
+                {% endfor %}
+              </select>
+              {% endif %}
+          </div>
 {% endfor %} 
 {% endunless %} 
 <input type="hidden" name="id"  id="variant_id" value="{{ product.selected_or_first_available_variant.id }}"  class="form-control">
